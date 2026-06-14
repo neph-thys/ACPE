@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ACPE — Register</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;
+    --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+    --accent:#4f8ef7;--green:#10b981;--red:#ef4444;
+    --text:#f0f4ff;--muted:#8892a4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;}
+  .grid-bg{position:fixed;inset:0;
+    background-image:linear-gradient(rgba(79,142,247,0.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(79,142,247,0.04) 1px,transparent 1px);
+    background-size:48px 48px;pointer-events:none;}
+  .card{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;
+    padding:44px;width:100%;max-width:520px;position:relative;z-index:1;
+    animation:fadeUp 0.4s ease both;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  .brand-name{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;
+    letter-spacing:-0.5px;margin-bottom:4px;}
+  .brand-sub{font-size:12px;color:var(--muted);margin-bottom:28px;}
+  h2{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;margin-bottom:4px;}
+  .sub{font-size:14px;color:var(--muted);margin-bottom:26px;}
+
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .field{margin-bottom:14px;}
+  label{display:block;font-size:11px;font-weight:500;color:var(--muted);
+    text-transform:uppercase;letter-spacing:0.6px;margin-bottom:5px;}
+  input, select{
+    width:100%;background:var(--bg3);border:1px solid var(--border2);
+    border-radius:9px;padding:10px 13px;color:var(--text);font-size:14px;
+    font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s;
+    appearance:none;
+  }
+  input:focus, select:focus{border-color:var(--accent);}
+  select option{background:var(--bg2);}
+
+  .btn{width:100%;padding:12px;border-radius:10px;border:none;
+    background:var(--accent);color:#fff;font-size:15px;font-weight:500;
+    font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:6px;
+    transition:opacity 0.15s,transform 0.1s;}
+  .btn:hover{opacity:0.9;} .btn:active{transform:scale(0.98);}
+
+  .msg{border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;display:none;}
+  .msg.error{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;}
+  .msg.success{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#6ee7b7;}
+
+  .back{display:block;text-align:center;margin-top:18px;font-size:13px;
+    color:var(--muted);text-decoration:none;transition:color 0.15s;}
+  .back:hover{color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="card">
+  <div class="brand-name">ACPE</div>
+  <div class="brand-sub">Autonomous Campus Placement Engine</div>
+
+  <h2>Create your account</h2>
+  <p class="sub">Fill in your details to register for placements</p>
+
+  <div class="msg" id="msg"></div>
+
+  <div class="row">
+    <div class="field">
+      <label>Full name</label>
+      <input type="text" id="full_name" placeholder="Alice Sharma"/>
+    </div>
+    <div class="field">
+      <label>Roll number</label>
+      <input type="text" id="roll_number" placeholder="CSE2025001"/>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Email address</label>
+    <input type="email" id="email" placeholder="you@college.edu"/>
+  </div>
+
+  <div class="field">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Choose a password"/>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>Branch</label>
+      <select id="branch">
+        <option value="">Select branch</option>
+        <option>CSE</option><option>ECE</option>
+        <option>MECH</option><option>CIVIL</option>
+        <option>EEE</option><option>IT</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Batch year</label>
+      <input type="number" id="batch_year" placeholder="2025" min="2020" max="2030"/>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>CGPA</label>
+      <input type="number" id="cgpa" placeholder="8.50" step="0.01" min="0" max="10"/>
+    </div>
+    <div class="field">
+      <label>Active backlogs</label>
+      <input type="number" id="active_backlogs" placeholder="0" min="0" value="0"/>
+    </div>
+  </div>
+
+  <button class="btn" onclick="doRegister()">Create account</button>
+  <a href="/" class="back">Already have an account? Sign in</a>
+</div>
+
+<script>
+async function doRegister() {
+  const msgEl = document.getElementById('msg');
+  msgEl.style.display = 'none';
+
+  const body = {
+    full_name:       document.getElementById('full_name').value.trim(),
+    roll_number:     document.getElementById('roll_number').value.trim(),
+    email:           document.getElementById('email').value.trim(),
+    password:        document.getElementById('password').value,
+    branch:          document.getElementById('branch').value,
+    batch_year:      document.getElementById('batch_year').value,
+    cgpa:            document.getElementById('cgpa').value,
+    active_backlogs: document.getElementById('active_backlogs').value || 0
+  };
+
+  if (!body.full_name || !body.email || !body.password || !body.branch) {
+    msgEl.className = 'msg error';
+    msgEl.textContent = 'Please fill in all required fields.';
+    msgEl.style.display = 'block'; return;
+  }
+
+  const res  = await fetch('/api/students', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+
+  if (res.ok) {
+    msgEl.className = 'msg success';
+    msgEl.textContent = 'Account created! Redirecting to login...';
+    msgEl.style.display = 'block';
+    setTimeout(() => window.location.href = '/', 1500);
+  } else {
+    msgEl.className = 'msg error';
+    msgEl.textContent = data.error || 'Registration failed.';
+    msgEl.style.display = 'block';
+  }
+}
+</script>
+</body>
+</html>

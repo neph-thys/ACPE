@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ACPE — Student Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;--bg4:#1e293b;
+    --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.11);
+    --accent:#4f8ef7;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--purple:#7c3aed;
+    --text:#f0f4ff;--muted:#8892a4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
+
+  /* SIDEBAR */
+  .sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;padding:0 0 24px;position:sticky;top:0;height:100vh;}
+  .logo{padding:24px 20px 20px;border-bottom:1px solid var(--border);margin-bottom:8px;}
+  .logo-name{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.5px;}
+  .logo-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+  .nav-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;
+    color:var(--muted);padding:10px 20px 4px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;
+    border-radius:8px;margin:0 8px;color:var(--muted);font-size:14px;
+    cursor:pointer;transition:all 0.15s;text-decoration:none;}
+  .nav-item:hover,.nav-item.active{background:var(--bg3);color:var(--text);}
+  .nav-item.active{color:var(--accent);}
+  .dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;}
+  .sidebar-bottom{margin-top:auto;padding:0 8px;}
+  .student-pill{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;
+    padding:10px 14px;font-size:13px;}
+  .student-pill .name{font-weight:500;color:var(--text);}
+  .student-pill .meta{color:var(--muted);font-size:11px;margin-top:2px;}
+  {% if student.is_placed %}
+  .placed-badge{display:inline-block;background:rgba(16,185,129,0.15);
+    border:1px solid rgba(16,185,129,0.3);color:#6ee7b7;
+    font-size:10px;padding:2px 8px;border-radius:20px;margin-top:4px;}
+  {% endif %}
+
+  /* MAIN */
+  .main{flex:1;padding:32px 36px;overflow-y:auto;max-width:960px;}
+  .page-header{margin-bottom:28px;}
+  .page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;letter-spacing:-0.5px;}
+  .page-sub{color:var(--muted);font-size:14px;margin-top:4px;}
+
+  /* STAT CARDS */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:32px;}
+  .stat{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:18px 20px;}
+  .stat-label{font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px;}
+  .stat-val{font-family:'Syne',sans-serif;font-weight:700;font-size:26px;}
+  .stat-val.green{color:var(--green);}
+  .stat-val.accent{color:var(--accent);}
+  .stat-val.amber{color:var(--amber);}
+
+  /* TABS */
+  .tabs{display:flex;gap:4px;margin-bottom:22px;background:var(--bg2);
+    border:1px solid var(--border2);border-radius:10px;padding:4px;width:fit-content;}
+  .tab{padding:7px 18px;border-radius:7px;font-size:13px;font-weight:500;
+    cursor:pointer;transition:all 0.15s;color:var(--muted);}
+  .tab.active{background:var(--bg3);color:var(--text);}
+
+  /* JOB CARDS */
+  .job-list{display:flex;flex-direction:column;gap:12px;}
+  .job-card{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;
+    padding:18px 20px;display:flex;align-items:center;gap:16px;transition:border-color 0.15s;}
+  .job-card:hover{border-color:rgba(79,142,247,0.35);}
+  .company-avatar{width:42px;height:42px;border-radius:10px;background:var(--bg3);
+    border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;
+    font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--accent);flex-shrink:0;}
+  .job-info{flex:1;}
+  .job-title{font-weight:500;font-size:15px;margin-bottom:3px;}
+  .job-meta{font-size:12px;color:var(--muted);}
+  .job-meta span{margin-right:12px;}
+  .job-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;}
+  .ctc{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:var(--green);}
+  .apply-btn{padding:7px 16px;border-radius:8px;border:none;
+    background:var(--accent);color:#fff;font-size:13px;font-family:'DM Sans',sans-serif;
+    cursor:pointer;transition:opacity 0.15s;}
+  .apply-btn:hover{opacity:0.85;}
+  .apply-btn:disabled{background:var(--bg3);color:var(--muted);cursor:not-allowed;}
+
+  /* APPLICATIONS TABLE */
+  .app-list{display:flex;flex-direction:column;gap:10px;}
+  .app-card{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;
+    padding:16px 20px;display:flex;align-items:center;gap:14px;}
+  .status-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;flex-shrink:0;}
+  .status-applied    {background:rgba(79,142,247,0.12);color:#93c5fd;}
+  .status-shortlisted{background:rgba(245,158,11,0.12);color:#fcd34d;}
+  .status-in_progress{background:rgba(124,58,237,0.12);color:#c4b5fd;}
+  .status-offered    {background:rgba(16,185,129,0.12);color:#6ee7b7;}
+  .status-accepted   {background:rgba(16,185,129,0.2);color:#34d399;border:1px solid rgba(16,185,129,0.3);}
+  .status-rejected   {background:rgba(239,68,68,0.1);color:#fca5a5;}
+  .status-withdrawn  {background:rgba(136,146,164,0.1);color:var(--muted);}
+
+  .empty{text-align:center;padding:48px 0;color:var(--muted);font-size:14px;}
+  .empty-icon{font-size:32px;margin-bottom:10px;}
+
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid var(--border2);
+    border-radius:10px;padding:12px 18px;font-size:13px;transform:translateY(80px);
+    transition:transform 0.3s;z-index:999;}
+  .toast.show{transform:none;}
+  .toast.success{border-color:rgba(16,185,129,0.4);color:#6ee7b7;}
+  .toast.error{border-color:rgba(239,68,68,0.4);color:#fca5a5;}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-name">ACPE</div>
+    <div class="logo-sub">Campus Placement Engine</div>
+  </div>
+  <div class="nav-label">Menu</div>
+  <a class="nav-item active" onclick="showTab('jobs')">
+    <span class="dot"></span> Available jobs
+  </a>
+  <a class="nav-item" onclick="showTab('applications')">
+    <span class="dot"></span> My applications
+  </a>
+  <div class="sidebar-bottom">
+    <div class="student-pill">
+      <div class="name">{{ student.full_name }}</div>
+      <div class="meta">{{ student.branch }} · {{ student.batch_year }} · CGPA {{ student.cgpa }}</div>
+      {% if student.is_placed %}
+        <div class="placed-badge">Placed</div>
+      {% endif %}
+    </div>
+    <a href="/logout" style="display:block;text-align:center;margin-top:10px;
+      font-size:12px;color:var(--muted);text-decoration:none;padding:6px;">Sign out</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="page-header">
+    <div class="page-title">Hello, {{ student.full_name.split()[0] }}</div>
+    <div class="page-sub">
+      {% if student.is_placed %}
+        Congratulations — you have been placed!
+      {% else %}
+        Here are the jobs you are eligible for today.
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Eligible jobs</div>
+      <div class="stat-val accent">{{ jobs|length }}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Applications</div>
+      <div class="stat-val">{{ applications|length }}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Status</div>
+      <div class="stat-val {% if student.is_placed %}green{% else %}amber{% endif %}">
+        {% if student.is_placed %}Placed{% else %}Active{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" id="tab-jobs" onclick="showTab('jobs')">Available jobs</div>
+    <div class="tab" id="tab-applications" onclick="showTab('applications')">My applications</div>
+  </div>
+
+  <!-- Jobs panel -->
+  <div id="panel-jobs">
+    {% if jobs %}
+    <div class="job-list">
+      {% for job in jobs %}
+      <div class="job-card">
+        <div class="company-avatar">{{ job.company_name[0] }}</div>
+        <div class="job-info">
+          <div class="job-title">{{ job.title }}</div>
+          <div class="job-meta">
+            <span>{{ job.company_name }}</span>
+            <span>{{ job.industry }}</span>
+            <span>CGPA {{ job.min_cgpa }}+</span>
+            <span>{{ job.job_type.replace('_',' ').title() }}</span>
+          </div>
+        </div>
+        <div class="job-right">
+          {% if job.ctc_lpa %}
+            <div class="ctc">₹{{ job.ctc_lpa }} LPA</div>
+          {% else %}
+            <div class="ctc" style="color:var(--muted)">Undisclosed</div>
+          {% endif %}
+          <button class="apply-btn"
+            onclick="applyJob('{{ job.job_id }}', '{{ student.student_id }}', this)">
+            Apply
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">🔍</div>
+      {% if student.is_placed %}
+        You are already placed. No further applications needed.
+      {% else %}
+        No eligible jobs right now. Check back soon.
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Applications panel -->
+  <div id="panel-applications" style="display:none;">
+    {% if applications %}
+    <div class="app-list">
+      {% for app in applications %}
+      <div class="app-card">
+        <div class="company-avatar">{{ app.company_name[0] }}</div>
+        <div class="job-info">
+          <div class="job-title">{{ app.job_title }}</div>
+          <div class="job-meta">
+            <span>{{ app.company_name }}</span>
+            <span>Applied {{ app.applied_at.strftime('%d %b %Y') }}</span>
+          </div>
+        </div>
+        <span class="status-badge status-{{ app.status }}">
+          {{ app.status.replace('_',' ').title() }}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">📋</div>
+      No applications yet. Browse jobs and apply!
+    </div>
+    {% endif %}
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function showTab(name) {
+  document.getElementById('panel-jobs').style.display        = name === 'jobs'         ? 'block' : 'none';
+  document.getElementById('panel-applications').style.display = name === 'applications' ? 'block' : 'none';
+  document.getElementById('tab-jobs').className        = 'tab' + (name === 'jobs'         ? ' active' : '');
+  document.getElementById('tab-applications').className = 'tab' + (name === 'applications' ? ' active' : '');
+}
+
+function toast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.textContent  = msg;
+  el.className    = `toast ${type} show`;
+  setTimeout(() => el.className = `toast ${type}`, 3000);
+}
+
+async function applyJob(jobId, studentId, btn) {
+  btn.disabled   = true;
+  btn.textContent = 'Applying...';
+  const res  = await fetch('/api/applications', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({student_id: studentId, job_id: jobId})
+  });
+  const data = await res.json();
+  if (res.ok) {
+    btn.textContent = 'Applied';
+    toast('Application submitted successfully!');
+    setTimeout(() => location.reload(), 1200);
+  } else {
+    btn.disabled    = false;
+    btn.textContent = 'Apply';
+    toast(data.error || 'Failed to apply.', 'error');
+  }
+}
+</script>
+</body>
+</html>
